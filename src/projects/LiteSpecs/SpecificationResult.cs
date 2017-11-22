@@ -2,23 +2,20 @@ namespace LiteSpecs
 {
     public class SpecificationResult
     {
-        public const string UnknownReason = "Unknown violation.";
+        private static readonly string[] EmptyReasons = new string[0];
 
         public bool IsSatisfied { get; }
-        public string Reason { get; }
+        public string[] Reasons { get; }
 
-        private SpecificationResult(bool isSatisfied, string reason = null)
+        private SpecificationResult(bool isSatisfied, string[] reasons)
         {
             IsSatisfied = isSatisfied;
-            Reason = reason;
+            Reasons = reasons;
         }
 
-        public static readonly SpecificationResult Satisfied = new SpecificationResult(true);
+        public static readonly SpecificationResult Satisfied = new SpecificationResult(true, EmptyReasons);
 
-        public static SpecificationResult NotSatisfied(string reason = null)
-            => new SpecificationResult(false, reason ?? UnknownReason);
-
-        public static implicit operator bool(SpecificationResult result)
-            => result.IsSatisfied;
+        public static SpecificationResult NotSatisfied(params string[] reasons)
+            => new SpecificationResult(false, reasons);
     }
 }

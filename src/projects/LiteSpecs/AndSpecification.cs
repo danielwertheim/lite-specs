@@ -1,34 +1,35 @@
 using System;
-using System.Linq.Expressions;
+using System.Linq;
 
 namespace LiteSpecs
 {
     public sealed class AndSpecification<T> : Specification<T>
     {
-        private AndSpecification(Expression<Func<T, SpecificationResult>> predicate) : base(predicate) { }
+        private AndSpecification(Func<T, SpecificationResult> predicate) : base(predicate) { }
 
-        internal static AndSpecification<T> Create(Specification<T> spec1, Specification<T> spec2, string reason)
+        internal static AndSpecification<T> Create(Specification<T> spec1, Specification<T> spec2)
         {
-            var pred1 = (Expression<Func<T, SpecificationResult>>)spec1;
-            var pred2 = (Expression<Func<T, SpecificationResult>>)spec2;
+            var pred1 = (Func<T, SpecificationResult>)spec1.IsSatisfiedBy;
+            var pred2 = (Func<T, SpecificationResult>)spec2.IsSatisfiedBy;
 
-            var p = Expression.Parameter(typeof(T));
+            SpecificationResult Pred(T i)
+            {
+                var pred1Result = pred1(i);
+                var pred2Result = pred2(i);
 
-            var leftVisitor = new ReplaceExpressionVisitor(pred1.Parameters[0], p);
-            var left = leftVisitor.Visit(pred1.Body);
+                if (!pred1Result.IsSatisfied && !pred2Result.IsSatisfied)
+                    return SpecificationResult.NotSatisfied(pred1Result.Reasons.Concat(pred2Result.Reasons).ToArray());
 
-            var rightVisitor = new ReplaceExpressionVisitor(pred2.Parameters[0], p);
-            var right = rightVisitor.Visit(pred2.Body);
+                if (!pred1Result.IsSatisfied)
+                    return pred1Result;
 
-            var leftAsBool = Expression.Convert(left, typeof(bool));
-            var rightAsBool = Expression.Convert(right, typeof(bool));
-            var and = Expression.AndAlso(leftAsBool, rightAsBool);
-            var satisfiedOrNot = Expression.Condition(and,
-                Expression.Constant(SpecificationResult.Satisfied),
-                Expression.Constant(SpecificationResult.NotSatisfied(reason)));
+                if (!pred2Result.IsSatisfied)
+                    return pred2Result;
 
-            return new AndSpecification<T>(
-                Expression.Lambda<Func<T, SpecificationResult>>(satisfiedOrNot, p));
+                return SpecificationResult.Satisfied;
+            }
+
+            return new AndSpecification<T>(Pred);
         }
     }
 }

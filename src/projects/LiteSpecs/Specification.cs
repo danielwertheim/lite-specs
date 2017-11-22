@@ -1,5 +1,4 @@
 using System;
-using System.Linq.Expressions;
 
 namespace LiteSpecs
 {
@@ -7,7 +6,7 @@ namespace LiteSpecs
     {
         public static Specification<T> All<T>() => Specification<T>.All;
 
-        public static Specification<T> Generic<T>(Expression<Func<T, SpecificationResult>> predicate)
+        public static Specification<T> Generic<T>(Func<T, SpecificationResult> predicate)
             => new Specification<T>(predicate);
     }
 
@@ -15,22 +14,27 @@ namespace LiteSpecs
     {
         public static readonly Specification<T> All = AllSpecification<T>.Create();
 
-        private readonly Expression<Func<T, SpecificationResult>> _predicate;
-        private readonly Lazy<Func<T, SpecificationResult>> _compiled;
+        private readonly Func<T, SpecificationResult> _predicate;
 
-        protected internal Specification(Expression<Func<T, SpecificationResult>> predicate)
+        protected internal Specification(Func<T, SpecificationResult> predicate)
         {
             _predicate = predicate;
-            _compiled = new Lazy<Func<T, SpecificationResult>>(() => _predicate.Compile());
         }
 
         public SpecificationResult IsSatisfiedBy(T item)
-            => _compiled.Value(item);
+            => _predicate(item);
 
         public static implicit operator Func<T, bool>(Specification<T> spec)
-            => i => spec._compiled.Value(i);
+            => i => spec._predicate(i).IsSatisfied;
 
-        public static explicit operator Expression<Func<T, SpecificationResult>>(Specification<T> spec)
-            => spec._predicate;
+        public static Specification<T> operator !(Specification<T> spec) => new Specification<T>(i =>
+        {
+            var r = spec._predicate(i);
+
+            if(!r.IsSatisfied)
+                return SpecificationResult.Satisfied;
+
+            return SpecificationResult.NotSatisfied();
+        });
     }
 }

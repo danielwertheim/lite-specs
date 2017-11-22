@@ -1,35 +1,31 @@
 using System;
-using System.Linq.Expressions;
+using System.Linq;
 
 namespace LiteSpecs
 {
     public sealed class OrSpecification<T> : Specification<T>
     {
-        private OrSpecification(Expression<Func<T, SpecificationResult>> predicate) : base(predicate) { }
+        private OrSpecification(Func<T, SpecificationResult> predicate) : base(predicate) { }
 
-        internal static OrSpecification<T> Create(Specification<T> spec1, Specification<T> spec2, string reason)
+        internal static OrSpecification<T> Create(Specification<T> spec1, Specification<T> spec2)
         {
-            var pred1 = (Expression<Func<T, SpecificationResult>>)spec1;
-            var pred2 = (Expression<Func<T, SpecificationResult>>)spec2;
+            var pred1 = (Func<T, SpecificationResult>)spec1.IsSatisfiedBy;
+            var pred2 = (Func<T, SpecificationResult>)spec2.IsSatisfiedBy;
 
-            var p = Expression.Parameter(typeof(T));
+            SpecificationResult Pred(T i)
+            {
+                var pred1Result = pred1(i);
+                if (pred1Result.IsSatisfied)
+                    return pred1Result;
 
-            var leftVisitor = new ReplaceExpressionVisitor(pred1.Parameters[0], p);
-            var left = leftVisitor.Visit(pred1.Body);
+                var pred2Result = pred2(i);
+                if (pred2Result.IsSatisfied)
+                    return pred2Result;
 
-            var rightVisitor = new ReplaceExpressionVisitor(pred2.Parameters[0], p);
-            var right = rightVisitor.Visit(pred2.Body);
+                return SpecificationResult.NotSatisfied(pred1Result.Reasons.Concat(pred2Result.Reasons).ToArray());
+            }
 
-            var leftAsBool = Expression.Convert(left, typeof(bool));
-            var rightAsBool = Expression.Convert(right, typeof(bool));
-
-            var or = Expression.OrElse(leftAsBool, rightAsBool);
-            var satisfiedOrNot = Expression.Condition(or,
-                Expression.Constant(SpecificationResult.Satisfied),
-                Expression.Constant(SpecificationResult.NotSatisfied(reason)));
-
-            return new OrSpecification<T>(
-                Expression.Lambda<Func<T, SpecificationResult>>(satisfiedOrNot, p));
+            return new OrSpecification<T>(Pred);
         }
     }
 }

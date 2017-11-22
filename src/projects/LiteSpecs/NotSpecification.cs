@@ -1,30 +1,24 @@
 using System;
-using System.Linq.Expressions;
 
 namespace LiteSpecs
 {
     public sealed class NotSpecification<T> : Specification<T>
     {
-        private NotSpecification(Expression<Func<T, SpecificationResult>> predicate) : base(predicate) { }
+        private NotSpecification(Func<T, SpecificationResult> predicate) : base(predicate) { }
 
         public static NotSpecification<T> Create(Specification<T> spec, string reason)
         {
-            var pred = (Expression<Func<T, SpecificationResult>>)spec;
+            var pred = (Func<T, SpecificationResult>)spec.IsSatisfiedBy;
 
-            var p = Expression.Parameter(typeof(T));
+            SpecificationResult Pred(T i)
+            {
+                var predResult = pred(i);
+                return predResult.IsSatisfied
+                    ? SpecificationResult.NotSatisfied(reason)
+                    : SpecificationResult.Satisfied;
+            }
 
-            var visitor = new ReplaceExpressionVisitor(pred.Parameters[0], p);
-            var body = visitor.Visit(pred.Body);
-
-            var bodyAsBool = Expression.Convert(body, typeof(bool));
-
-            var not = Expression.Not(bodyAsBool);
-            var satisfiedOrNot = Expression.Condition(not,
-                Expression.Constant(SpecificationResult.Satisfied),
-                Expression.Constant(SpecificationResult.NotSatisfied(reason)));
-
-            return new NotSpecification<T>(
-                Expression.Lambda<Func<T, SpecificationResult>>(satisfiedOrNot, p));
+            return new NotSpecification<T>(Pred);
         }
     }
 }
