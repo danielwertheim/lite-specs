@@ -1,11 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>net461;netstandard2.0</TargetFrameworks>
     <Version>0.0.0</Version>
     <Authors>danielwertheim</Authors>
     <Company>danielwertheim</Company>
-    <Description>Contains an opinionated implementation of an in-memory specification allowing you to report multiple reasons upon unsatisfied specifications.</Description>
+    <Description>Contains an opinionated implementation of in-memory specifications, allowing you to report multiple reasons upon why an evaluated specificaton was not happy.</Description>
     <Copyright>danielwertheim</Copyright>
     <PackageLicenseUrl>https://raw.githubusercontent.com/danielwertheim/lite-specs/master/LICENSE.txt</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/danielwertheim/lite-specs</PackageProjectUrl>
@@ -14,5 +14,4 @@
     <PackageTags>Specifications</PackageTags>
     <PackageReleaseNotes>https://github.com/danielwertheim/lite-specs/blob/master/ReleaseNotes.md</PackageReleaseNotes>
   </PropertyGroup>
-
 </Project>

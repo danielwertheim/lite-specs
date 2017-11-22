@@ -79,9 +79,10 @@ namespace LiteSpecs.UnitTests
         }
 
         [Fact]
-        public void Can_combine_specs_and_filter_enumerables()
+        public void Can_combine_specs_to_filter_enumerables()
         {
-            var combined = TestSpecs.AllNumbers
+            var combined = TestSpecs
+                .AllNumbers
                 .AndAlso(TestSpecs.OddNumbers)
                 .And(TestSpecs.Ones.Or(TestSpecs.Threes));
 

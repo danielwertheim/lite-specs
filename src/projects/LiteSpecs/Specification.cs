@@ -8,6 +8,9 @@ namespace LiteSpecs
 
         public static Specification<T> Generic<T>(Func<T, bool> predicate, string reason)
             => new Specification<T>(predicate, reason);
+
+        public static Specification<T> Generic<T>(Func<T, ISpecificationResult> predicate)
+            => new Specification<T>(predicate);
     }
 
     public class Specification<T> : ISpecification<T>

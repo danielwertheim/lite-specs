@@ -3,9 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27004.2009
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LiteSpecs", "projects\LiteSpecs\LiteSpecs.csproj", "{94DDDFB1-71C7-4BEC-B068-B0CE0C90BF2F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LiteSpecs", "projects\LiteSpecs\LiteSpecs.csproj", "{94DDDFB1-71C7-4BEC-B068-B0CE0C90BF2F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LiteSpecs.UnitTests", "tests\LiteSpecs.UnitTests\LiteSpecs.UnitTests.csproj", "{0DDD9708-6712-4F14-9796-2545BEE1519C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LiteSpecs.UnitTests", "tests\LiteSpecs.UnitTests\LiteSpecs.UnitTests.csproj", "{0DDD9708-6712-4F14-9796-2545BEE1519C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LiteSpecs.Classical.UnitTests", "tests\LiteSpecs.Classical.UnitTests\LiteSpecs.Classical.UnitTests.csproj", "{A0206507-58DA-42D0-AA31-EC8F683ADFE7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{0DDD9708-6712-4F14-9796-2545BEE1519C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0DDD9708-6712-4F14-9796-2545BEE1519C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0DDD9708-6712-4F14-9796-2545BEE1519C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A0206507-58DA-42D0-AA31-EC8F683ADFE7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A0206507-58DA-42D0-AA31-EC8F683ADFE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A0206507-58DA-42D0-AA31-EC8F683ADFE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A0206507-58DA-42D0-AA31-EC8F683ADFE7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
