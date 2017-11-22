@@ -1,0 +1,34 @@
+public class BuildConfig
+{
+    private const string Version = "0.1.0";
+
+    public readonly string SrcDir = "./src/";
+    public readonly string OutDir = "./build/";    
+    
+    public string Target { get; private set; }
+    public string SemVer { get; private set; }
+    public string BuildVersion { get; private set; }
+    public string BuildProfile { get; private set; }
+    public bool IsTeamCityBuild { get; private set; }
+    
+    public static BuildConfig Create(
+        ICakeContext context,
+        BuildSystem buildSystem)
+    {
+        if (context == null)
+            throw new ArgumentNullException("context");
+
+        var branch = context.Argument("branch", "master");
+        var isReleaseBranch = branch.ToLower() == "master";
+        var buildRevision = context.Argument("buildrevision", "0");
+
+        return new BuildConfig
+        {
+            Target = context.Argument("target", "Default"),
+            SemVer = Version + (isReleaseBranch ? string.Empty : "-pre" + buildRevision),
+            BuildVersion = Version + "." + buildRevision,
+            BuildProfile = context.Argument("configuration", "Release"),
+            IsTeamCityBuild = buildSystem.TeamCity.IsRunningOnTeamCity
+        };
+    }
+}
