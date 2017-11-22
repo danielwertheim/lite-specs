@@ -4,18 +4,18 @@ namespace LiteSpecs
 {
     public sealed class NotSpecification<T> : Specification<T>
     {
-        private NotSpecification(Func<T, SpecificationResult> predicate) : base(predicate) { }
+        private NotSpecification(Func<T, ISpecificationResult> predicate) : base(predicate) { }
 
-        public static NotSpecification<T> Create(Specification<T> spec, string reason)
+        public static NotSpecification<T> Create(ISpecification<T> spec, string reason)
         {
-            var pred = (Func<T, SpecificationResult>)spec.IsSatisfiedBy;
+            var pred = (Func<T, ISpecificationResult>)spec.Eval;
 
-            SpecificationResult Pred(T i)
+            ISpecificationResult Pred(T i)
             {
                 var predResult = pred(i);
                 return predResult.IsSatisfied
-                    ? SpecificationResult.NotSatisfied(reason)
-                    : SpecificationResult.Satisfied;
+                    ? SpecificationIs.NotSatisfied(reason)
+                    : SpecificationIs.Satisfied;
             }
 
             return new NotSpecification<T>(Pred);

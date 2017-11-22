@@ -5,10 +5,13 @@ namespace LiteSpecs
 {
     public static class SpecificationExtensions
     {
-        public static IEnumerable<T> ApplyOn<T>(this Specification<T> spec, IEnumerable<T> src)
-            => src.Where(i => spec.IsSatisfiedBy(i).IsSatisfied);
+        public static IEnumerable<T> Matching<T>(this IEnumerable<T> src, ISpecification<T> specification)
+            => src.Where(i => specification.Eval(i).IsSatisfied);
 
-        public static Specification<T> And<T>(this Specification<T> left, Specification<T> right)
+        public static IEnumerable<T> ApplyOn<T>(this ISpecification<T> spec, IEnumerable<T> src)
+            => src.Where(i => spec.Eval(i).IsSatisfied);
+
+        public static ISpecification<T> And<T>(this ISpecification<T> left, ISpecification<T> right)
         {
             if (left is AllSpecification<T>)
                 return right;
@@ -19,7 +22,7 @@ namespace LiteSpecs
             return AndSpecification<T>.Create(left, right);
         }
 
-        public static Specification<T> AndAlso<T>(this Specification<T> left, Specification<T> right)
+        public static ISpecification<T> AndAlso<T>(this ISpecification<T> left, ISpecification<T> right)
         {
             if (left is AllSpecification<T>)
                 return right;
@@ -30,7 +33,7 @@ namespace LiteSpecs
             return AndAlsoSpecification<T>.Create(left, right);
         }
 
-        public static Specification<T> Or<T>(this Specification<T> left, Specification<T> right)
+        public static ISpecification<T> Or<T>(this ISpecification<T> left, ISpecification<T> right)
         {
             if (left is AllSpecification<T>)
                 return left;
@@ -41,7 +44,7 @@ namespace LiteSpecs
             return OrSpecification<T>.Create(left, right);
         }
 
-        public static Specification<T> Not<T>(this Specification<T> spec, string reason)
+        public static ISpecification<T> Not<T>(this ISpecification<T> spec, string reason)
             => NotSpecification<T>.Create(spec, reason);
     }
 }

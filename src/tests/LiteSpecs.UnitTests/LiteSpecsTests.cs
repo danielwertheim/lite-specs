@@ -7,39 +7,14 @@ namespace LiteSpecs.UnitTests
 {
     public class LiteSpecsTests
     {
-        private static class TestSpecs
-        {
-            internal static readonly Specification<int> AllNumbers = Specification<int>.All;
-            internal static readonly Specification<int> OddNumbers = Specification.Generic<int>(i => i % 2 != 0
-                ? SpecificationResult.Satisfied
-                : SpecificationResult.NotSatisfied("Not an odd integer."));
-            internal static readonly Specification<int> OddNumbersTyped = new OddIntsSpecification();
-            internal static readonly Specification<int> Ones = Specification.Generic<int>(i => i == 1
-                ? SpecificationResult.Satisfied
-                : SpecificationResult.NotSatisfied("Not a 1."));
-            internal static readonly Specification<int> Threes = Specification.Generic<int>(i => i == 3
-                ? SpecificationResult.Satisfied
-                : SpecificationResult.NotSatisfied("Not a 3."));
-            internal static readonly Specification<int> NotOnes = Ones.Not("Should have been a 1.");
-        }
-
         private readonly List<int> _data = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
         private readonly int[] _oddValues = { 1, 3, 5, 7, 9 };
         private readonly int[] _evenValues = { 2, 4, 6, 8, 10 };
 
-        public class OddIntsSpecification : Specification<int>
-        {
-            public OddIntsSpecification() : base(
-                i => i % 2 != 0
-                ? SpecificationResult.Satisfied
-                : SpecificationResult.NotSatisfied("Not an odd integer."))
-            { }
-        }
-
         [Fact]
         public void Can_filter_enumerables()
         {
-            var oddsByEnum1 = _data.Where(TestSpecs.OddNumbers).ToArray();
+            var oddsByEnum1 = _data.Matching(TestSpecs.OddNumbers).ToArray();
             var oddsByEnum2 = TestSpecs.OddNumbers.ApplyOn(_data).ToArray();
             var oddsByEnum3 = TestSpecs.OddNumbersTyped.ApplyOn(_data).ToArray();
 
@@ -51,8 +26,8 @@ namespace LiteSpecs.UnitTests
         [Fact]
         public void Can_negate_filter_against_enumerables()
         {
-            var evens = _data.Where(TestSpecs.OddNumbers.Not("Should be odd."));
-            var allButOnes = _data.Where(TestSpecs.NotOnes).ToArray();
+            var evens = _data.Matching(TestSpecs.OddNumbers.Not("Was even."));
+            var allButOnes = _data.Matching(TestSpecs.NegatedOnes).ToArray();
 
             evens.Should().BeEquivalentTo(_evenValues);
             allButOnes.Should().BeEquivalentTo(_data.Where(i => i != 1));
@@ -61,11 +36,10 @@ namespace LiteSpecs.UnitTests
         [Fact]
         public void Can_negate_filter_against_enumerables_using_operator()
         {
-            var evens = _data.Where(!TestSpecs.OddNumbers);
-            var allButOnes = _data.Where(!TestSpecs.Ones).ToArray();
+            var oddNumbers = Specification.Generic<int>(i => i % 2 != 0, "Not an odd number");
+            var evens = _data.Where(!oddNumbers);
 
             evens.Should().BeEquivalentTo(_evenValues);
-            allButOnes.Should().BeEquivalentTo(_data.Where(i => i != 1));
         }
 
         [Fact]
@@ -75,7 +49,7 @@ namespace LiteSpecs.UnitTests
                 .OddNumbers
                 .And(TestSpecs.Ones);
 
-            var onesAndThrees = _data.Where(combined).ToArray();
+            var onesAndThrees = _data.Matching(combined).ToArray();
 
             onesAndThrees.Should().BeEquivalentTo(new[] { 1 });
         }
@@ -87,7 +61,7 @@ namespace LiteSpecs.UnitTests
                 .OddNumbers
                 .AndAlso(TestSpecs.Ones);
 
-            var onesAndThrees = _data.Where(combined).ToArray();
+            var onesAndThrees = _data.Matching(combined).ToArray();
 
             onesAndThrees.Should().BeEquivalentTo(new[] { 1 });
         }
@@ -99,7 +73,7 @@ namespace LiteSpecs.UnitTests
                 .Ones
                 .Or(TestSpecs.Threes);
 
-            var onesOrThrees = _data.Where(combined).ToArray();
+            var onesOrThrees = _data.Matching(combined).ToArray();
 
             onesOrThrees.Should().BeEquivalentTo(new[] { 1, 3 });
         }
@@ -111,7 +85,7 @@ namespace LiteSpecs.UnitTests
                 .AndAlso(TestSpecs.OddNumbers)
                 .And(TestSpecs.Ones.Or(TestSpecs.Threes));
 
-            var onesAndThrees = _data.Where(combined).ToArray();
+            var onesAndThrees = _data.Matching(combined).ToArray();
 
             onesAndThrees.Should().BeEquivalentTo(new[] { 1, 3 });
         }
@@ -121,7 +95,7 @@ namespace LiteSpecs.UnitTests
         [InlineData(3)]
         public void Or_Should_not_provide_a_reason_When_satisfied(int value)
         {
-            var result = TestSpecs.Ones.Or(TestSpecs.Threes).IsSatisfiedBy(value);
+            var result = TestSpecs.Ones.Or(TestSpecs.Threes).Eval(value);
 
             result.IsSatisfied.Should().BeTrue();
             result.Reasons.Should().BeEmpty();
@@ -132,7 +106,7 @@ namespace LiteSpecs.UnitTests
         [InlineData(3)]
         public void And_Should_not_provide_a_reason_When_satisfied(int value)
         {
-            var result = TestSpecs.AllNumbers.And(TestSpecs.OddNumbers).IsSatisfiedBy(value);
+            var result = TestSpecs.AllNumbers.And(TestSpecs.OddNumbers).Eval(value);
 
             result.IsSatisfied.Should().BeTrue();
             result.Reasons.Should().BeEmpty();
@@ -143,7 +117,7 @@ namespace LiteSpecs.UnitTests
         [InlineData(3)]
         public void AndAlso_Should_not_provide_a_reason_When_satisfied(int value)
         {
-            var result = TestSpecs.AllNumbers.AndAlso(TestSpecs.OddNumbers).IsSatisfiedBy(value);
+            var result = TestSpecs.AllNumbers.AndAlso(TestSpecs.OddNumbers).Eval(value);
 
             result.IsSatisfied.Should().BeTrue();
             result.Reasons.Should().BeEmpty();
@@ -154,7 +128,7 @@ namespace LiteSpecs.UnitTests
         [InlineData(4)]
         public void Or_Should_provide_a_reason_When_not_satisfied(int value)
         {
-            var result = TestSpecs.Ones.Or(TestSpecs.Threes).IsSatisfiedBy(value);
+            var result = TestSpecs.Ones.Or(TestSpecs.Threes).Eval(value);
 
             result.IsSatisfied.Should().BeFalse();
             result.Reasons.Should().BeEquivalentTo("Not a 1.", "Not a 3.");
@@ -165,7 +139,7 @@ namespace LiteSpecs.UnitTests
         [InlineData(4)]
         public void Or_Should_provide_a_deap_reason_When_not_satisfied(int value)
         {
-            var result = TestSpecs.OddNumbers.Or(TestSpecs.Ones.Or(TestSpecs.Threes)).IsSatisfiedBy(value);
+            var result = TestSpecs.OddNumbers.Or(TestSpecs.Ones.Or(TestSpecs.Threes)).Eval(value);
 
             result.IsSatisfied.Should().BeFalse();
             result.Reasons.Should().BeEquivalentTo("Not an odd integer.", "Not a 1.", "Not a 3.");
@@ -176,7 +150,7 @@ namespace LiteSpecs.UnitTests
         [InlineData(4)]
         public void And_Should_provide_a_reason_When_not_satisfied(int value)
         {
-            var result = TestSpecs.Ones.And(TestSpecs.Threes).IsSatisfiedBy(value);
+            var result = TestSpecs.Ones.And(TestSpecs.Threes).Eval(value);
 
             result.IsSatisfied.Should().BeFalse();
             result.Reasons.Should().BeEquivalentTo("Not a 1.", "Not a 3.");
@@ -187,7 +161,7 @@ namespace LiteSpecs.UnitTests
         [InlineData(4)]
         public void And_Should_provide_a_deap_reason_When_not_satisfied(int value)
         {
-            var result = TestSpecs.OddNumbers.And(TestSpecs.Ones.And(TestSpecs.Threes)).IsSatisfiedBy(value);
+            var result = TestSpecs.OddNumbers.And(TestSpecs.Ones.And(TestSpecs.Threes)).Eval(value);
 
             result.IsSatisfied.Should().BeFalse();
             result.Reasons.Should().BeEquivalentTo("Not an odd integer.", "Not a 1.", "Not a 3.");
@@ -198,7 +172,7 @@ namespace LiteSpecs.UnitTests
         [InlineData(4)]
         public void AndAlso_Should_provide_a_reason_for_left_predicate_When_not_satisfied(int value)
         {
-            var result = TestSpecs.Ones.AndAlso(TestSpecs.Threes).IsSatisfiedBy(value);
+            var result = TestSpecs.Ones.AndAlso(TestSpecs.Threes).Eval(value);
 
             result.IsSatisfied.Should().BeFalse();
             result.Reasons.Should().BeEquivalentTo("Not a 1.");
@@ -207,10 +181,21 @@ namespace LiteSpecs.UnitTests
         [Fact]
         public void Not_Should_provide_a_reason_When_not_satisfied()
         {
-            var result = TestSpecs.NotOnes.IsSatisfiedBy(1);
+            var result = TestSpecs.NegatedOnes.Eval(1);
 
             result.IsSatisfied.Should().BeFalse();
-            result.Reasons.Should().BeEquivalentTo("Should have been a 1.");
+            result.Reasons.Should().BeEquivalentTo("Was a 1.");
+        }
+
+        [Fact]
+        public void Not_Should_provide_a_generic_reason_When_one_is_provided_and_it_is_not_satisfied()
+        {
+            var spec = TestSpecs.Ones.Not("That did not work!");
+
+            var result = spec.Eval(1);
+
+            result.IsSatisfied.Should().BeFalse();
+            result.Reasons.Should().BeEquivalentTo("That did not work!");
         }
     }
 }

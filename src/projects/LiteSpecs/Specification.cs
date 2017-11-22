@@ -6,35 +6,31 @@ namespace LiteSpecs
     {
         public static Specification<T> All<T>() => Specification<T>.All;
 
-        public static Specification<T> Generic<T>(Func<T, SpecificationResult> predicate)
-            => new Specification<T>(predicate);
+        public static Specification<T> Generic<T>(Func<T, bool> predicate, string reason)
+            => new Specification<T>(predicate, reason);
     }
 
-    public class Specification<T>
+    public class Specification<T> : ISpecification<T>
     {
         public static readonly Specification<T> All = AllSpecification<T>.Create();
 
-        private readonly Func<T, SpecificationResult> _predicate;
+        private readonly Func<T, ISpecificationResult> _predicate;
 
-        protected internal Specification(Func<T, SpecificationResult> predicate)
+        protected internal Specification(Func<T, bool> predicate, string reason)
+            : this(i => predicate(i) ? SpecificationIs.Satisfied : SpecificationIs.NotSatisfied(reason)) { }
+
+        protected internal Specification(Func<T, ISpecificationResult> predicate)
         {
             _predicate = predicate;
         }
 
-        public SpecificationResult IsSatisfiedBy(T item)
+        public ISpecificationResult Eval(T item)
             => _predicate(item);
 
         public static implicit operator Func<T, bool>(Specification<T> spec)
             => i => spec._predicate(i).IsSatisfied;
 
-        public static Specification<T> operator !(Specification<T> spec) => new Specification<T>(i =>
-        {
-            var r = spec._predicate(i);
-
-            if(!r.IsSatisfied)
-                return SpecificationResult.Satisfied;
-
-            return SpecificationResult.NotSatisfied();
-        });
+        public static Func<T, bool> operator !(Specification<T> spec)
+            => i => !spec._predicate(i).IsSatisfied;
     }
 }

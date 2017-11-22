@@ -2,6 +2,17 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <Version>0.0.0</Version>
+    <Authors>danielwertheim</Authors>
+    <Company>danielwertheim</Company>
+    <Description>Contains an opinionated implementation of an in-memory specification allowing you to report multiple reasons upon unsatisfied specifications.</Description>
+    <Copyright>danielwertheim</Copyright>
+    <PackageLicenseUrl>https://raw.githubusercontent.com/danielwertheim/lite-specs/master/LICENSE.txt</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/danielwertheim/lite-specs</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/danielwertheim/lite-specs</RepositoryUrl>
+    <RepositoryType>Git</RepositoryType>
+    <PackageTags>Specifications</PackageTags>
+    <PackageReleaseNotes>https://github.com/danielwertheim/lite-specs/blob/master/ReleaseNotes.md</PackageReleaseNotes>
   </PropertyGroup>
 
 </Project>
